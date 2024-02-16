@@ -2,7 +2,7 @@ import { db } from "@/lib/db/index";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { DefaultSession, getServerSession, NextAuthOptions } from "next-auth";
 import { redirect } from "next/navigation";
-import { env } from "@/lib/env.mjs"
+import { env } from "@/lib/env.mjs";
 import GithubProvider from "next-auth/providers/github";
 
 declare module "next-auth" {
@@ -24,7 +24,8 @@ export type AuthSession = {
 };
 
 export const authOptions: NextAuthOptions = {
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db) as any,
+  secret: env.NEXTAUTH_SECRET,
   callbacks: {
     session: ({ session, user }) => {
       session.user.id = user.id;
@@ -32,13 +33,12 @@ export const authOptions: NextAuthOptions = {
     },
   },
   providers: [
-     GithubProvider({
+    GithubProvider({
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
-    })
+    }),
   ],
 };
-
 
 export const getUserAuth = async () => {
   const session = await getServerSession(authOptions);
@@ -49,4 +49,3 @@ export const checkAuth = async () => {
   const { session } = await getUserAuth();
   if (!session) redirect("/api/auth/signin");
 };
-
